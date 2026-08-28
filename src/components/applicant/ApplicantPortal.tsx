@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Briefcase,
   ShieldCheck,
@@ -17,7 +17,11 @@ import {
   ExternalLink,
   HelpCircle,
   Copy,
-  Check
+  Check,
+  Paperclip,
+  Trash2,
+  File,
+  AlertCircle
 } from "lucide-react";
 import { Job, CandidateApplication } from "@/lib/types";
 import { StorageService } from "@/lib/storage";
@@ -43,6 +47,16 @@ export const ApplicantPortal: React.FC<ApplicantPortalProps> = ({
   const [location, setLocation] = useState("");
   const [resumeText, setResumeText] = useState("");
   const [linkedInText, setLinkedInText] = useState("");
+
+  // File Upload State
+  const [resumeFileName, setResumeFileName] = useState<string | null>(null);
+  const [resumeFileSize, setResumeFileSize] = useState<number | null>(null);
+  const [isParsingResume, setIsParsingResume] = useState(false);
+  const [resumeParseError, setResumeParseError] = useState<string | null>(null);
+
+  const [linkedInFileName, setLinkedInFileName] = useState<string | null>(null);
+  const [isParsingLinkedIn, setIsParsingLinkedIn] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Confirmation Receipt State
@@ -54,10 +68,79 @@ export const ApplicantPortal: React.FC<ApplicantPortalProps> = ({
   const [lookupResult, setLookupResult] = useState<CandidateApplication | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
 
+  const resumeInputRef = useRef<HTMLInputElement>(null);
+  const linkedInInputRef = useRef<HTMLInputElement>(null);
+
   const handleApplyClick = (job: Job) => {
     setSelectedJob(job);
     setIsApplying(true);
     setSubmittedReceipt(null);
+    setResumeFileName(null);
+    setResumeFileSize(null);
+    setResumeParseError(null);
+    setLinkedInFileName(null);
+  };
+
+  const handleResumeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsParsingResume(true);
+    setResumeParseError(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/parse-resume", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to parse document.");
+      }
+
+      setResumeText(data.text);
+      setResumeFileName(file.name);
+      setResumeFileSize(file.size);
+    } catch (err: any) {
+      console.error("Resume file parsing error:", err);
+      setResumeParseError(err?.message || "Failed to extract text from file.");
+    } finally {
+      setIsParsingResume(false);
+      if (resumeInputRef.current) resumeInputRef.current.value = "";
+    }
+  };
+
+  const handleLinkedInFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsParsingLinkedIn(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/parse-resume", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to parse document.");
+      }
+
+      setLinkedInText(data.text);
+      setLinkedInFileName(file.name);
+    } catch (err: any) {
+      console.error("LinkedIn file parsing error:", err);
+    } finally {
+      setIsParsingLinkedIn(false);
+      if (linkedInInputRef.current) linkedInInputRef.current.value = "";
+    }
   };
 
   const handleSubmitApplication = (e: React.FormEvent) => {
@@ -86,6 +169,9 @@ export const ApplicantPortal: React.FC<ApplicantPortalProps> = ({
       setLocation("");
       setResumeText("");
       setLinkedInText("");
+      setResumeFileName(null);
+      setResumeFileSize(null);
+      setLinkedInFileName(null);
       onApplicationSubmitted();
     } catch (err) {
       console.error("Submission failed:", err);
@@ -113,6 +199,12 @@ export const ApplicantPortal: React.FC<ApplicantPortalProps> = ({
     navigator.clipboard.writeText(text);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
+  };
+
+  const formatBytes = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
@@ -352,32 +444,155 @@ export const ApplicantPortal: React.FC<ApplicantPortalProps> = ({
                 </div>
               </div>
 
-              {/* Resume Evidence */}
-              <div>
-                <label className="block font-semibold text-primary mb-1">
-                  Resume Content / Professional Experience *
-                </label>
-                <textarea
-                  required
-                  rows={8}
-                  value={resumeText}
-                  onChange={(e) => setResumeText(e.target.value)}
-                  placeholder="Paste your resume text, work history, projects, and technical skills..."
-                  className="w-full bg-surface text-primary font-mono text-xs p-3.5 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20 resize-none leading-relaxed"
+              {/* Resume Upload / Paste Section */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block font-semibold text-primary">
+                    Resume Document & Evidence *
+                  </label>
+                  <span className="text-[11px] text-on-surface-variant">
+                    Supports PDF, DOCX, DOC, TXT
+                  </span>
+                </div>
+
+                {/* Hidden File Input */}
+                <input
+                  type="file"
+                  ref={resumeInputRef}
+                  onChange={handleResumeFileUpload}
+                  accept=".pdf,.docx,.doc,.txt,.md"
+                  className="hidden"
                 />
+
+                {/* Upload Button / Dropzone */}
+                {resumeFileName ? (
+                  <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-lg bg-emerald-100 text-emerald-700">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="font-headline font-bold text-xs text-emerald-950">{resumeFileName}</p>
+                        <p className="text-[10px] text-emerald-700">
+                          {resumeFileSize ? formatBytes(resumeFileSize) : "Uploaded"} • Extracted successfully
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResumeFileName(null);
+                        setResumeFileSize(null);
+                        setResumeText("");
+                      }}
+                      className="text-error hover:bg-error-container/40 p-1.5 rounded-lg transition-colors"
+                      title="Remove file"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => resumeInputRef.current?.click()}
+                    className="p-4 rounded-lg border-2 border-dashed border-outline-variant/50 hover:border-secondary bg-surface hover:bg-surface-container-low transition-all text-center cursor-pointer flex flex-col items-center justify-center gap-1.5"
+                  >
+                    {isParsingResume ? (
+                      <div className="flex items-center gap-2 text-secondary py-2">
+                        <div className="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+                        <span className="font-semibold text-xs">Extracting text from document...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="p-2 rounded-full bg-secondary/10 text-secondary">
+                          <Upload className="w-5 h-5" />
+                        </div>
+                        <p className="font-headline font-bold text-xs text-primary">
+                          Click to upload or drag & drop Resume PDF / DOCX
+                        </p>
+                        <p className="text-[11px] text-on-surface-variant">
+                          Our system will extract and anonymize your professional experience automatically.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {resumeParseError && (
+                  <p className="text-[11px] text-error flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {resumeParseError}
+                  </p>
+                )}
+
+                {/* Extracted Resume Text (Editable) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">
+                      Extracted Resume Content (Review or Edit)
+                    </span>
+                    {resumeText && (
+                      <span className="text-[10px] text-emerald-700 font-semibold">
+                        ✓ {resumeText.length} characters extracted
+                      </span>
+                    )}
+                  </div>
+                  <textarea
+                    required
+                    rows={6}
+                    value={resumeText}
+                    onChange={(e) => setResumeText(e.target.value)}
+                    placeholder="Or paste your resume text directly here..."
+                    className="w-full bg-surface text-primary font-mono text-xs p-3 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20 resize-none leading-relaxed"
+                  />
+                </div>
               </div>
 
               {/* Optional LinkedIn Export */}
-              <div>
-                <label className="block font-semibold text-primary mb-1">
-                  Supplementary LinkedIn PDF Export Text (Optional)
-                </label>
+              <div className="space-y-2 pt-2 border-t border-outline-variant/20">
+                <div className="flex items-center justify-between">
+                  <label className="block font-semibold text-primary">
+                    Supplementary LinkedIn PDF Export (Optional)
+                  </label>
+                  <input
+                    type="file"
+                    ref={linkedInInputRef}
+                    onChange={handleLinkedInFileUpload}
+                    accept=".pdf,.docx,.txt"
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => linkedInInputRef.current?.click()}
+                    className="text-[11px] font-bold text-secondary hover:text-secondary-container flex items-center gap-1"
+                  >
+                    <Paperclip className="w-3.5 h-3.5" />
+                    <span>Attach LinkedIn PDF</span>
+                  </button>
+                </div>
+
+                {linkedInFileName && (
+                  <div className="p-2 rounded-lg bg-surface border border-outline-variant/30 flex items-center justify-between text-xs">
+                    <span className="font-semibold text-primary">{linkedInFileName}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLinkedInFileName(null);
+                        setLinkedInText("");
+                      }}
+                      className="text-error hover:text-error/80"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+
                 <textarea
-                  rows={3}
+                  rows={2}
                   value={linkedInText}
                   onChange={(e) => setLinkedInText(e.target.value)}
-                  placeholder="Paste optional text from a LinkedIn PDF export or project portfolio..."
-                  className="w-full bg-surface text-primary font-mono text-xs p-3 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20 resize-none"
+                  placeholder="Paste optional text from a LinkedIn PDF export or portfolio..."
+                  className="w-full bg-surface text-primary font-mono text-xs p-2.5 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20 resize-none"
                 />
               </div>
 
@@ -395,7 +610,7 @@ export const ApplicantPortal: React.FC<ApplicantPortalProps> = ({
                   disabled={isSubmitting || !fullName.trim() || !email.trim() || !resumeText.trim()}
                   className="px-6 py-2.5 rounded-lg bg-secondary hover:bg-secondary-container disabled:opacity-50 text-white text-xs font-bold shadow-subtle flex items-center gap-2 transition-all hover:scale-[1.01]"
                 >
-                  {isSubmitting ? "Encrypting & Submitting..." : "Submit Application"}
+                  {isSubmitting ? "Submitting Application..." : "Submit Application"}
                 </button>
               </div>
             </form>
