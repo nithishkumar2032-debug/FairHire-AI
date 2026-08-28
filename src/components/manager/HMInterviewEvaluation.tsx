@@ -29,7 +29,6 @@ export const HMInterviewEvaluation: React.FC<HMInterviewEvaluationProps> = ({
   applications,
   onApplicationUpdated,
 }) => {
-  // Only candidates in Round 1 Interview or beyond
   const round1Apps = applications.filter(
     (a) => a.jobId === job.id && (a.stage === "Round 1 Interview" || a.round1Scorecard !== undefined)
   );
@@ -101,7 +100,6 @@ export const HMInterviewEvaluation: React.FC<HMInterviewEvaluationProps> = ({
 
       StorageService.updateApplication(updatedApp);
 
-      // Auto-escalate if significant discrepancy without justification
       if (requiresEscalation && !discrepancyJustification.trim()) {
         StorageService.addEscalation({
           id: `esc-${Date.now()}`,
@@ -150,11 +148,11 @@ export const HMInterviewEvaluation: React.FC<HMInterviewEvaluationProps> = ({
 
   if (round1Apps.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/30 p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
-        <Mic className="w-10 h-10 text-slate-600 mb-3" />
-        <h3 className="font-display font-bold text-white text-base">No Candidates in Round 1 Interview</h3>
-        <p className="text-xs text-slate-400 max-w-md mt-1 mb-4">
-          Go to <strong className="text-indigo-300">Stage 1: Shortlisting</strong> to evaluate incoming applications and advance candidates to Round 1.
+      <div className="bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant/50 p-12 text-center flex flex-col items-center justify-center min-h-[380px] shadow-subtle">
+        <Mic className="w-10 h-10 text-on-surface-variant mb-2" />
+        <h3 className="font-headline font-bold text-primary text-base">No Candidates in Round 1 Interview</h3>
+        <p className="text-xs text-on-surface-variant max-w-md mt-1 mb-4">
+          Go to <strong className="text-secondary">Stage 1: Shortlisting</strong> to evaluate incoming applications and advance candidates to Round 1.
         </p>
       </div>
     );
@@ -164,23 +162,23 @@ export const HMInterviewEvaluation: React.FC<HMInterviewEvaluationProps> = ({
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Top Header */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-secondary/10 text-secondary border border-secondary/20">
               Stage 2: Round 1 Structured Interview Evaluation
             </span>
-            <span className="text-xs text-slate-400 font-medium">{job.title}</span>
+            <span className="text-xs text-on-surface-variant font-medium">{job.title}</span>
           </div>
-          <h1 className="text-xl font-bold font-display text-white">
+          <h1 className="font-headline font-bold text-xl text-primary">
             Transcript Review & Dual-Score Validation
           </h1>
         </div>
 
         {/* Candidate Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400">Candidate:</span>
+          <span className="text-xs text-on-surface-variant font-medium">Candidate:</span>
           <select
             value={activeApp?.id}
             onChange={(e) => {
@@ -192,7 +190,7 @@ export const HMInterviewEvaluation: React.FC<HMInterviewEvaluationProps> = ({
                 setHmReasons(found.round1Scorecard.hmReasons);
               }
             }}
-            className="bg-slate-900 text-slate-200 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="bg-surface-container-lowest text-primary text-xs font-semibold px-3 py-2 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20 shadow-subtle cursor-pointer"
           >
             {round1Apps.map((a) => (
               <option key={a.id} value={a.id}>
@@ -203,31 +201,29 @@ export const HMInterviewEvaluation: React.FC<HMInterviewEvaluationProps> = ({
         </div>
       </div>
 
-      {/* Discrepancy Status Banner (If Scorecard Exists) */}
+      {/* Discrepancy Status Banner */}
       {scorecard && (
         <div
-          className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+          className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-subtle ${
             scorecard.discrepancyLevel === "Aligned"
-              ? "bg-emerald-950/20 border-emerald-500/40 text-emerald-300"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-900"
               : scorecard.discrepancyLevel === "Minor Difference"
-              ? "bg-amber-950/20 border-amber-500/40 text-amber-300"
-              : "bg-red-950/30 border-red-500/50 text-red-300"
+              ? "bg-amber-50 border-amber-200 text-amber-900"
+              : "bg-red-50 border-red-200 text-red-900"
           }`}
         >
           <div className="flex items-center gap-3">
             {scorecard.discrepancyLevel === "Aligned" ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
             ) : scorecard.discrepancyLevel === "Minor Difference" ? (
-              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
             ) : (
-              <ShieldAlert className="w-5 h-5 text-red-400 shrink-0" />
+              <ShieldAlert className="w-5 h-5 text-error shrink-0" />
             )}
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-xs">
-                  Dual-Score Discrepancy Level: {scorecard.discrepancyLevel.toUpperCase()} (Delta: {scorecard.delta}%)
-                </span>
-              </div>
+              <span className="font-headline font-bold text-xs">
+                Dual-Score Discrepancy Level: {scorecard.discrepancyLevel.toUpperCase()} (Delta: {scorecard.delta}%)
+              </span>
               <p className="text-[11px] opacity-90 mt-0.5">
                 Hiring Manager Official Score: <strong>{scorecard.hmTotalScore}%</strong> • Gemini Independent Validation: <strong>{scorecard.geminiTotalScore}%</strong>
               </p>
@@ -238,7 +234,7 @@ export const HMInterviewEvaluation: React.FC<HMInterviewEvaluationProps> = ({
             {activeApp.stage !== "Round 2 Assignment" && (
               <button
                 onClick={handleAdvanceToRound2}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 transition-all flex items-center gap-1.5"
+                className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary-container text-white text-xs font-semibold shadow-subtle flex items-center gap-1.5 transition-all"
               >
                 <span>Advance to Round 2 Assignment</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -248,17 +244,17 @@ export const HMInterviewEvaluation: React.FC<HMInterviewEvaluationProps> = ({
         </div>
       )}
 
-      {/* Main Scoring Grid */}
+      {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Interview Transcript */}
+        {/* Left: Transcript */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-6 shadow-subtle space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-outline-variant/30">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-indigo-400" />
-                <h3 className="font-display font-semibold text-xs text-white">Interview Transcript</h3>
+                <FileText className="w-4 h-4 text-secondary" />
+                <h3 className="font-headline font-bold text-xs text-primary">Interview Transcript</h3>
               </div>
-              <span className="text-[10px] text-slate-400">Paste approved transcript</span>
+              <span className="text-[10px] text-on-surface-variant">Paste approved transcript</span>
             </div>
 
             <textarea
@@ -266,19 +262,17 @@ export const HMInterviewEvaluation: React.FC<HMInterviewEvaluationProps> = ({
               value={transcriptText}
               onChange={(e) => setTranscriptText(e.target.value)}
               placeholder="Paste dialogue transcript between Hiring Manager and Candidate..."
-              className="w-full bg-slate-950 text-slate-200 font-mono text-xs p-3.5 rounded-xl border border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none leading-relaxed"
+              className="w-full bg-surface text-primary font-mono text-xs p-3.5 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20 resize-none leading-relaxed"
             />
           </div>
         </div>
 
-        {/* Right Column: HM Criterion Marks Entry vs Gemini Validations */}
+        {/* Right: Scoring Controls */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="font-display font-semibold text-xs text-white">
-                Hiring Manager Official Rubric Scoring (Human Marks are Official)
-              </h3>
-            </div>
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-6 shadow-subtle space-y-4">
+            <h3 className="font-headline font-bold text-xs text-primary pb-3 border-b border-outline-variant/30">
+              Hiring Manager Official Rubric Scoring (Human Marks are Official)
+            </h3>
 
             <div className="space-y-4">
               {job.criteria.map((crit) => {
@@ -287,21 +281,20 @@ export const HMInterviewEvaluation: React.FC<HMInterviewEvaluationProps> = ({
                 const citations = scorecard?.geminiCitations?.[crit.id] || [];
 
                 return (
-                  <div key={crit.id} className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+                  <div key={crit.id} className="p-4 rounded-lg bg-surface border border-outline-variant/30 space-y-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-semibold text-xs text-white">{crit.name}</h4>
-                        <span className="text-[10px] text-slate-500">{crit.description}</span>
+                        <h4 className="font-headline font-bold text-xs text-primary">{crit.name}</h4>
+                        <span className="text-[10px] text-on-surface-variant">{crit.description}</span>
                       </div>
-                      <span className="text-[11px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                      <span className="text-[11px] font-bold text-secondary bg-secondary/10 px-2 py-0.5 rounded border border-secondary/20">
                         {crit.weight}% Weight
                       </span>
                     </div>
 
-                    {/* HM Score Slider/Input */}
                     <div className="grid grid-cols-12 gap-3 items-center">
                       <div className="col-span-8 flex items-center gap-3">
-                        <span className="text-[11px] text-slate-400 shrink-0 font-medium">HM Mark:</span>
+                        <span className="text-[11px] text-on-surface-variant shrink-0 font-medium">HM Mark:</span>
                         <input
                           type="range"
                           min={0}
@@ -310,20 +303,19 @@ export const HMInterviewEvaluation: React.FC<HMInterviewEvaluationProps> = ({
                           onChange={(e) =>
                             setHmMarks({ ...hmMarks, [crit.id]: Number(e.target.value) })
                           }
-                          className="w-full accent-indigo-500 cursor-pointer"
+                          className="w-full accent-secondary cursor-pointer"
                         />
                       </div>
                       <div className="col-span-4 flex items-center justify-end gap-2">
-                        <span className="text-sm font-bold text-white">{hmMark}%</span>
+                        <span className="text-sm font-headline font-bold text-primary">{hmMark}%</span>
                         {geminiMark !== undefined && (
-                          <span className="text-xs font-bold text-indigo-300 bg-slate-900 px-2 py-0.5 rounded border border-slate-800" title="Gemini Validation Mark">
+                          <span className="text-xs font-bold text-secondary bg-surface-container px-2 py-0.5 rounded border border-outline-variant/30">
                             AI: {geminiMark}%
                           </span>
                         )}
                       </div>
                     </div>
 
-                    {/* HM Reason Note */}
                     <input
                       type="text"
                       value={hmReasons[crit.id] || ""}
@@ -331,14 +323,13 @@ export const HMInterviewEvaluation: React.FC<HMInterviewEvaluationProps> = ({
                         setHmReasons({ ...hmReasons, [crit.id]: e.target.value })
                       }
                       placeholder="Brief evidence-based justification for this mark..."
-                      className="w-full bg-slate-900 text-slate-200 text-xs px-3 py-1.5 rounded-lg border border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full bg-surface-container-lowest text-primary text-xs px-3 py-2 rounded-md border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20"
                     />
 
-                    {/* Gemini Citations / Excerpts if available */}
                     {citations.length > 0 && (
-                      <div className="p-2.5 rounded-lg bg-indigo-950/20 border border-indigo-500/20 text-[11px] text-indigo-300 space-y-1">
-                        <span className="font-semibold flex items-center gap-1">
-                          <Quote className="w-3 h-3 text-indigo-400" />
+                      <div className="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/30 text-[11px] text-on-surface-variant space-y-1">
+                        <span className="font-semibold text-primary flex items-center gap-1">
+                          <Quote className="w-3 h-3 text-secondary" />
                           Gemini Independent Quoted Excerpt:
                         </span>
                         {citations.map((cite, cIdx) => (
@@ -353,10 +344,10 @@ export const HMInterviewEvaluation: React.FC<HMInterviewEvaluationProps> = ({
               })}
             </div>
 
-            {/* If Discrepancy > 25%, require written justification */}
+            {/* If Discrepancy > 25% */}
             {scorecard && scorecard.delta > 25 && (
-              <div className="p-4 rounded-xl bg-red-950/20 border border-red-500/30 space-y-2">
-                <span className="text-xs font-bold text-red-300 block">
+              <div className="p-4 rounded-lg bg-red-50 border border-red-200 space-y-2">
+                <span className="text-xs font-bold text-error block">
                   ⚠️ Significant Discrepancy ({scorecard.delta}% Delta) — Justification Required
                 </span>
                 <textarea
@@ -364,20 +355,19 @@ export const HMInterviewEvaluation: React.FC<HMInterviewEvaluationProps> = ({
                   value={discrepancyJustification}
                   onChange={(e) => setDiscrepancyJustification(e.target.value)}
                   placeholder="Provide explicit job-related reasoning explaining why human marks diverged from Gemini validation..."
-                  className="w-full bg-slate-950 text-slate-200 text-xs p-2.5 rounded-xl border border-red-500/30 focus:outline-none focus:ring-1 focus:ring-red-500"
+                  className="w-full bg-surface-container-lowest text-primary text-xs p-2.5 rounded-md border border-red-300 focus:outline-none focus:ring-2 focus:ring-red-200"
                 />
               </div>
             )}
 
-            {/* Validation Action Trigger */}
-            <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-              <span className="text-xs text-slate-400">
+            <div className="pt-3 border-t border-outline-variant/30 flex items-center justify-between">
+              <span className="text-xs text-on-surface-variant">
                 Trigger Gemini to independently score transcript & compute discrepancy
               </span>
               <button
                 onClick={handleRunAiValidation}
                 disabled={isValidating || !transcriptText.trim()}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all"
+                className="px-6 py-2.5 rounded-lg bg-secondary hover:bg-secondary-container text-white font-bold text-xs shadow-subtle flex items-center gap-2 transition-all hover:scale-[1.01]"
               >
                 {isValidating ? (
                   <>

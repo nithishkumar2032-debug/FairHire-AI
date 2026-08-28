@@ -2,19 +2,22 @@
 
 import React, { useState } from "react";
 import {
-  Globe,
   Briefcase,
-  MapPin,
-  Clock,
   ShieldCheck,
-  Upload,
-  FileText,
-  CheckCircle2,
   Search,
   ArrowRight,
+  Upload,
+  CheckCircle2,
+  FileText,
+  Lock,
   Sparkles,
-  Info,
-  X
+  MapPin,
+  Clock,
+  ChevronRight,
+  ExternalLink,
+  HelpCircle,
+  Copy,
+  Check
 } from "lucide-react";
 import { Job, CandidateApplication } from "@/lib/types";
 import { StorageService } from "@/lib/storage";
@@ -22,7 +25,7 @@ import { StorageService } from "@/lib/storage";
 interface ApplicantPortalProps {
   jobs: Job[];
   applications: CandidateApplication[];
-  onApplicationSubmitted: (app: CandidateApplication) => void;
+  onApplicationSubmitted: () => void;
 }
 
 export const ApplicantPortal: React.FC<ApplicantPortalProps> = ({
@@ -33,204 +36,239 @@ export const ApplicantPortal: React.FC<ApplicantPortalProps> = ({
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isApplying, setIsApplying] = useState(false);
 
-  // Form Fields
+  // Form State
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [location, setLocation] = useState("");
   const [resumeText, setResumeText] = useState("");
   const [linkedInText, setLinkedInText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Receipt Modal
-  const [receiptApplication, setReceiptApplication] = useState<CandidateApplication | null>(null);
+  // Confirmation Receipt State
+  const [submittedReceipt, setSubmittedReceipt] = useState<CandidateApplication | null>(null);
+  const [copiedCode, setCopiedCode] = useState(false);
 
-  // Tracking Search
-  const [trackQuery, setTrackQuery] = useState("");
-  const [trackedApp, setTrackedApp] = useState<CandidateApplication | null>(null);
-  const [trackError, setTrackError] = useState(false);
+  // Status Lookup State
+  const [lookupQuery, setLookupQuery] = useState("");
+  const [lookupResult, setLookupResult] = useState<CandidateApplication | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
 
-  const publishedJobs = jobs.filter((j) => j.status === "published");
-
-  const handleOpenApply = (job: Job) => {
+  const handleApplyClick = (job: Job) => {
     setSelectedJob(job);
     setIsApplying(true);
-    setResumeText("");
-    setLinkedInText("");
+    setSubmittedReceipt(null);
   };
 
   const handleSubmitApplication = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedJob || !fullName.trim() || !email.trim() || !resumeText.trim()) return;
 
-    const newApp = StorageService.submitApplication(
-      selectedJob.id,
-      fullName.trim(),
-      email.trim(),
-      phone.trim(),
-      location.trim(),
-      resumeText.trim(),
-      linkedInText.trim() || undefined
-    );
+    setIsSubmitting(true);
 
-    setIsApplying(false);
-    setReceiptApplication(newApp);
-    onApplicationSubmitted(newApp);
+    try {
+      const newApp = StorageService.submitApplication(
+        selectedJob.id,
+        fullName.trim(),
+        email.trim(),
+        phone.trim(),
+        location.trim(),
+        resumeText.trim(),
+        linkedInText.trim() || undefined
+      );
 
-    // Reset form
-    setFullName("");
-    setEmail("");
-    setPhone("");
-    setLocation("");
-    setResumeText("");
-    setLinkedInText("");
-  };
-
-  const handleTrackSearch = () => {
-    setTrackError(false);
-    if (!trackQuery.trim()) return;
-
-    const found = applications.find(
-      (a) =>
-        a.anonymizedId.toLowerCase() === trackQuery.trim().toLowerCase() ||
-        a.id.toLowerCase() === trackQuery.trim().toLowerCase() ||
-        a.identityVault.email.toLowerCase() === trackQuery.trim().toLowerCase()
-    );
-
-    if (found) {
-      setTrackedApp(found);
-    } else {
-      setTrackedApp(null);
-      setTrackError(true);
+      setSubmittedReceipt(newApp);
+      setIsApplying(false);
+      // Reset form
+      setFullName("");
+      setEmail("");
+      setPhone("");
+      setLocation("");
+      setResumeText("");
+      setLinkedInText("");
+      onApplicationSubmitted();
+    } catch (err) {
+      console.error("Submission failed:", err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  const handleLookup = (e: React.FormEvent) => {
+    e.preventDefault();
+    setHasSearched(true);
+    if (!lookupQuery.trim()) {
+      setLookupResult(null);
+      return;
+    }
+    const found = applications.find(
+      (a) =>
+        a.anonymizedId.toLowerCase() === lookupQuery.trim().toLowerCase() ||
+        a.id.toLowerCase() === lookupQuery.trim().toLowerCase()
+    );
+    setLookupResult(found || null);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
+
   return (
-    <div className="space-y-10 animate-fadeIn">
-      {/* Hero Banner */}
-      <div className="rounded-3xl border border-slate-800 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950/40 via-slate-900/60 to-slate-950 p-8 sm:p-12 shadow-2xl relative overflow-hidden text-center max-w-4xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs font-semibold mb-6">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>FairHire Public Career Gateway • 100% Bias-Shield Protected</span>
+    <div className="space-y-8 animate-fadeIn max-w-5xl mx-auto">
+      {/* Hero Header */}
+      <div className="text-center space-y-3 py-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/10 border border-secondary/20 text-secondary text-xs font-semibold">
+          <ShieldCheck className="w-4 h-4" />
+          <span>Auditable, Bias-Free Recruitment Portal</span>
         </div>
-
-        <h1 className="text-3xl sm:text-5xl font-extrabold font-display text-white tracking-tight leading-tight mb-4">
-          Merit-First, Unbiased Career Opportunities
+        <h1 className="text-3xl sm:text-4xl font-headline font-bold text-primary tracking-tight">
+          Explore Open Opportunities
         </h1>
-
-        <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-8">
-          Apply with zero bias. Your personal identity is partitioned into an isolated vault, ensuring our hiring team evaluates your application strictly on technical skills and demonstrable accomplishments.
+        <p className="text-sm text-on-surface-variant max-w-2xl mx-auto leading-relaxed">
+          FairHire guarantees that candidate evidence is evaluated strictly against locked, job-related criteria. Your personal identity is cryptographically separated in our Identity Vault during preliminary shortlisting.
         </p>
+      </div>
 
-        {/* Track Application Quick Search */}
-        <div className="max-w-md mx-auto flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-2xl border border-slate-800 shadow-xl">
-          <Search className="w-4 h-4 text-slate-500 ml-3 shrink-0" />
+      {/* Submission Success Receipt Card */}
+      {submittedReceipt && (
+        <div className="p-6 rounded-xl border border-emerald-300 bg-emerald-50/50 shadow-subtle space-y-4 animate-fadeIn">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+              <Check className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-headline font-bold text-emerald-950 text-base">Application Successfully Submitted!</h3>
+              <p className="text-xs text-emerald-800">Your neutral candidate tracking receipt has been created.</p>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-lg bg-surface-container-lowest border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider block">
+                Your Neutral Candidate Tracking ID
+              </span>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xl font-headline font-bold text-primary">{submittedReceipt.anonymizedId}</span>
+                <button
+                  onClick={() => copyToClipboard(submittedReceipt.anonymizedId)}
+                  className="p-1 rounded text-on-surface-variant hover:text-primary transition-colors"
+                  title="Copy Candidate ID"
+                >
+                  {copiedCode ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="text-xs text-on-surface-variant space-y-0.5">
+              <p>Status: <strong className="text-secondary">{submittedReceipt.applicantFacingStatus}</strong></p>
+              <p>Submitted: <span className="text-primary font-medium">{new Date(submittedReceipt.appliedDate).toLocaleDateString()}</span></p>
+            </div>
+          </div>
+
+          <p className="text-xs text-emerald-900 leading-relaxed">
+            Please save your tracking ID (<code>{submittedReceipt.anonymizedId}</code>). You can check your review status at any time below without creating an account.
+          </p>
+        </div>
+      )}
+
+      {/* Track Application Status Bar */}
+      <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-5 shadow-subtle space-y-3">
+        <h3 className="font-headline font-bold text-sm text-primary flex items-center gap-2">
+          <Search className="w-4 h-4 text-secondary" />
+          Track Existing Application Status
+        </h3>
+        <form onSubmit={handleLookup} className="flex gap-2">
           <input
             type="text"
-            value={trackQuery}
-            onChange={(e) => setTrackQuery(e.target.value)}
-            placeholder="Track code (e.g. Candidate #1001)"
-            className="flex-1 bg-transparent text-xs text-white placeholder:text-slate-500 focus:outline-none px-2"
+            value={lookupQuery}
+            onChange={(e) => setLookupQuery(e.target.value)}
+            placeholder="Enter Candidate Tracking ID (e.g. Candidate #1001)..."
+            className="flex-1 bg-surface text-primary text-xs px-3.5 py-2.5 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20 shadow-subtle font-medium"
           />
           <button
-            onClick={handleTrackSearch}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-all shadow-md shadow-indigo-600/30 shrink-0"
+            type="submit"
+            className="px-5 py-2.5 rounded-lg bg-secondary hover:bg-secondary-container text-white text-xs font-semibold transition-all shadow-subtle"
           >
-            Track Status
+            Check Status
           </button>
-        </div>
+        </form>
 
-        {/* Track result display */}
-        {trackedApp && (
-          <div className="mt-6 p-4 rounded-2xl bg-slate-900/90 border border-indigo-500/40 text-left max-w-md mx-auto space-y-2 animate-fadeIn">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-xs text-white">{trackedApp.anonymizedId}</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
-                {trackedApp.applicantFacingStatus}
-              </span>
-            </div>
-            <p className="text-xs text-slate-400">
-              Target Position: <strong className="text-slate-200">{jobs.find((j) => j.id === trackedApp.jobId)?.title || "Engineering Role"}</strong>
-            </p>
-            <p className="text-[11px] text-slate-500">
-              Applied on {new Date(trackedApp.appliedDate).toLocaleDateString()}
-            </p>
+        {hasSearched && (
+          <div className="pt-2 border-t border-outline-variant/20">
+            {lookupResult ? (
+              <div className="p-3.5 rounded-lg bg-surface border border-outline-variant/30 flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-headline font-bold text-primary">{lookupResult.anonymizedId}</span>
+                  <p className="text-[11px] text-on-surface-variant">Applied: {new Date(lookupResult.appliedDate).toLocaleDateString()}</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-bold text-secondary">{lookupResult.applicantFacingStatus}</span>
+                  <p className="text-[10px] text-on-surface-variant">Stage: {lookupResult.stage}</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-error font-medium">No application found matching that ID.</p>
+            )}
           </div>
-        )}
-
-        {trackError && (
-          <p className="text-xs text-red-400 mt-4 animate-fadeIn">
-            No application found matching that Candidate Code.
-          </p>
         )}
       </div>
 
-      {/* Published Vacancies Section */}
-      <div className="space-y-6 max-w-5xl mx-auto">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold font-display text-white">Open Vacancies ({publishedJobs.length})</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Explore published positions and locked evaluation rubrics</p>
-          </div>
-        </div>
+      {/* Live Job Requisitions List */}
+      <div className="space-y-4">
+        <h2 className="font-headline font-bold text-lg text-primary">Open Positions ({jobs.length})</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {publishedJobs.map((job) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {jobs.map((job) => (
             <div
               key={job.id}
-              className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 hover:border-indigo-500/50 transition-all flex flex-col justify-between group shadow-lg"
+              className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-6 shadow-subtle space-y-4 flex flex-col justify-between hover:shadow-card transition-all group"
             >
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-primary-fixed/40 text-on-primary-fixed border border-primary-fixed">
                     {job.department}
                   </span>
-                  <span className="text-xs text-slate-400 flex items-center gap-1">
+                  <span className="text-[11px] text-on-surface-variant font-medium flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
                     Deadline: {job.deadline}
                   </span>
                 </div>
 
                 <div>
-                  <h3 className="font-display font-bold text-lg text-white group-hover:text-indigo-400 transition-colors">
+                  <h3 className="font-headline font-bold text-base text-primary group-hover:text-secondary transition-colors">
                     {job.title}
                   </h3>
-                  <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
-                    <span className="flex items-center gap-1">
-                      <Briefcase className="w-3.5 h-3.5" />
-                      {job.seniority} • {job.type}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5" />
-                      {job.location}
-                    </span>
-                  </div>
+                  <p className="text-xs text-on-surface-variant mt-1 line-clamp-2 leading-relaxed">
+                    {job.summary}
+                  </p>
                 </div>
 
-                <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
-                  {job.summary}
-                </p>
-
-                {/* Skills chips */}
                 <div className="flex flex-wrap gap-1.5 pt-1">
-                  {job.requiredSkills.map((skill, idx) => (
+                  {job.requiredSkills.slice(0, 4).map((skill, idx) => (
                     <span
                       key={idx}
-                      className="text-[10px] px-2 py-0.5 rounded-lg bg-slate-950 text-slate-300 border border-slate-800"
+                      className="text-[10px] px-2 py-0.5 rounded-md bg-surface text-on-surface-variant border border-outline-variant/30 font-medium"
                     >
                       {skill}
                     </span>
                   ))}
+                  {job.requiredSkills.length > 4 && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-md bg-surface text-on-surface-variant border border-outline-variant/30 font-medium">
+                      +{job.requiredSkills.length - 4} more
+                    </span>
+                  )}
                 </div>
               </div>
 
-              {/* Action Button */}
-              <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between">
-                <span className="text-xs text-slate-400 font-medium">
-                  {job.vacancies} Open {job.vacancies === 1 ? "Vacancy" : "Vacancies"}
+              <div className="pt-4 border-t border-outline-variant/20 flex items-center justify-between">
+                <span className="text-xs text-on-surface-variant font-medium">
+                  {job.type} • <strong className="text-primary">{job.seniority}</strong>
                 </span>
                 <button
-                  onClick={() => handleOpenApply(job)}
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-indigo-600/30 transition-all hover:scale-[1.02]"
+                  onClick={() => handleApplyClick(job)}
+                  className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary-container text-white text-xs font-semibold flex items-center gap-1.5 shadow-subtle transition-all hover:scale-[1.02]"
                 >
                   <span>Apply Now</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -238,175 +276,129 @@ export const ApplicantPortal: React.FC<ApplicantPortalProps> = ({
               </div>
             </div>
           ))}
-
-          {publishedJobs.length === 0 && (
-            <div className="col-span-2 rounded-2xl border border-dashed border-slate-800 p-12 text-center">
-              <p className="text-xs text-slate-400">No vacancies published at this time.</p>
-            </div>
-          )}
         </div>
       </div>
 
       {/* Application Modal */}
       {isApplying && selectedJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-2xl rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setIsApplying(false)}
-              className="absolute top-5 right-5 p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                <FileText className="w-6 h-6" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/40 backdrop-blur-sm animate-fadeIn">
+          <div className="relative w-full max-w-2xl rounded-xl bg-surface-container-lowest border border-outline-variant/30 p-6 sm:p-8 shadow-elevated text-primary max-h-[90vh] overflow-y-auto space-y-6">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-secondary/10 text-secondary border border-secondary/20">
+                  Application Form
+                </span>
+                <span className="text-xs text-on-surface-variant">{selectedJob.title}</span>
               </div>
-              <div>
-                <h2 className="text-xl font-bold font-display text-white">Apply for {selectedJob.title}</h2>
-                <p className="text-xs text-slate-400">{selectedJob.department} • {selectedJob.location}</p>
-              </div>
-            </div>
-
-            {/* Bias Shield Guarantee */}
-            <div className="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-500/30 mb-6 flex items-start gap-3 text-xs text-emerald-300">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-              <p>
-                <strong>Identity Vault Protection:</strong> Your personal contact details are stored in an isolated vault and completely redacted during evaluation. You will receive a neutral tracking code.
+              <h2 className="font-headline font-bold text-xl text-primary">Submit Candidate Evidence</h2>
+              <p className="text-xs text-on-surface-variant mt-1">
+                Your personal identity is stored in an isolated Identity Vault and will not be displayed to evaluators during shortlisting.
               </p>
             </div>
 
             <form onSubmit={handleSubmitApplication} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Full Legal Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Alex Rivera"
-                    className="w-full bg-slate-950 text-white px-3.5 py-2.5 rounded-xl border border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Email Address *</label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="alex.rivera@example.com"
-                    className="w-full bg-slate-950 text-white px-3.5 py-2.5 rounded-xl border border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Phone Number</label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+1 (555) 019-2834"
-                    className="w-full bg-slate-950 text-white px-3.5 py-2.5 rounded-xl border border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Current Location</label>
-                  <input
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="City, Country"
-                    className="w-full bg-slate-950 text-white px-3.5 py-2.5 rounded-xl border border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
+              {/* Personal Info Grid */}
+              <div className="p-4 rounded-lg bg-surface border border-outline-variant/30 space-y-3">
+                <span className="font-headline font-bold text-primary block text-xs flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-secondary" />
+                  Identity Vault Credentials (Protected & Partitioned)
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-primary mb-1">Full Legal Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="e.g. Alex Morgan"
+                      className="w-full bg-surface-container-lowest text-primary px-3 py-2 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-primary mb-1">Email Address *</label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="alex.morgan@example.com"
+                      className="w-full bg-surface-container-lowest text-primary px-3 py-2 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-primary mb-1">Phone Number (Optional)</label>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+1 (555) 019-2834"
+                      className="w-full bg-surface-container-lowest text-primary px-3 py-2 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-primary mb-1">Location / Timezone</label>
+                    <input
+                      type="text"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="San Francisco, CA (PST)"
+                      className="w-full bg-surface-container-lowest text-primary px-3 py-2 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                    />
+                  </div>
                 </div>
               </div>
 
+              {/* Resume Evidence */}
               <div>
-                <label className="block font-semibold text-slate-300 mb-1">
-                  Resume / Professional Evidence (Text / Paste) *
+                <label className="block font-semibold text-primary mb-1">
+                  Resume Content / Professional Experience *
                 </label>
                 <textarea
                   required
                   rows={8}
                   value={resumeText}
                   onChange={(e) => setResumeText(e.target.value)}
-                  placeholder="Paste your professional experience, technical skills, projects, and quantifiable achievements..."
-                  className="w-full bg-slate-950 text-slate-200 font-mono text-xs p-3 rounded-xl border border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none leading-relaxed"
+                  placeholder="Paste your resume text, work history, projects, and technical skills..."
+                  className="w-full bg-surface text-primary font-mono text-xs p-3.5 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20 resize-none leading-relaxed"
                 />
               </div>
 
+              {/* Optional LinkedIn Export */}
               <div>
-                <label className="block font-semibold text-slate-300 mb-1">
-                  Optional: Supplementary LinkedIn Export Text / URL Evidence
+                <label className="block font-semibold text-primary mb-1">
+                  Supplementary LinkedIn PDF Export Text (Optional)
                 </label>
                 <textarea
                   rows={3}
                   value={linkedInText}
                   onChange={(e) => setLinkedInText(e.target.value)}
-                  placeholder="Optional LinkedIn profile export or additional open-source portfolio evidence..."
-                  className="w-full bg-slate-950 text-slate-200 font-mono text-xs p-3 rounded-xl border border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
+                  placeholder="Paste optional text from a LinkedIn PDF export or project portfolio..."
+                  className="w-full bg-surface text-primary font-mono text-xs p-3 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20 resize-none"
                 />
               </div>
 
-              <div className="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
+              {/* Actions */}
+              <div className="pt-4 border-t border-outline-variant/30 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsApplying(false)}
-                  className="px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium"
+                  className="px-4 py-2 rounded-lg text-xs font-medium text-on-surface-variant hover:bg-surface"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 text-white font-bold shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02]"
+                  disabled={isSubmitting || !fullName.trim() || !email.trim() || !resumeText.trim()}
+                  className="px-6 py-2.5 rounded-lg bg-secondary hover:bg-secondary-container disabled:opacity-50 text-white text-xs font-bold shadow-subtle flex items-center gap-2 transition-all hover:scale-[1.01]"
                 >
-                  Submit Application with Bias Shield
+                  {isSubmitting ? "Encrypting & Submitting..." : "Submit Application"}
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Traceable Receipt Modal */}
-      {receiptApplication && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-          <div className="w-full max-w-md rounded-3xl bg-slate-900 border border-emerald-500/40 p-6 sm:p-8 text-center space-y-5 shadow-2xl">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-8 h-8" />
-            </div>
-
-            <div>
-              <h3 className="text-xl font-bold font-display text-white">Application Received!</h3>
-              <p className="text-xs text-slate-400 mt-1">Your application is now securely partitioned in FairHire.</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-[11px] text-slate-400 uppercase font-semibold">Your Candidate Code</span>
-                <span className="font-mono text-sm font-bold text-emerald-400">{receiptApplication.anonymizedId}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[11px] text-slate-400 uppercase font-semibold">Initial Status</span>
-                <span className="text-xs font-semibold text-slate-200">{receiptApplication.applicantFacingStatus}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[11px] text-slate-400 uppercase font-semibold">Timestamp</span>
-                <span className="text-[11px] text-slate-400">{new Date(receiptApplication.appliedDate).toLocaleTimeString()}</span>
-              </div>
-            </div>
-
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              Save your candidate code. A confirmation notice has also been staged to your email address.
-            </p>
-
-            <button
-              onClick={() => setReceiptApplication(null)}
-              className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all"
-            >
-              Done & Return to Career Gateway
-            </button>
           </div>
         </div>
       )}

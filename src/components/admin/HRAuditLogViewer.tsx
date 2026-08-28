@@ -38,32 +38,32 @@ export const HRAuditLogViewer: React.FC<HRAuditLogViewerProps> = ({ logs }) => {
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Header */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl space-y-3">
+      <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-6 shadow-subtle space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <History className="w-5 h-5 text-purple-400" />
-            <h2 className="text-lg font-bold font-display text-white">
+            <History className="w-5 h-5 text-secondary" />
+            <h2 className="font-headline font-bold text-lg text-primary">
               Immutable Governance Audit Ledger ({logs.length} Events Recorded)
             </h2>
           </div>
         </div>
-        <p className="text-xs text-slate-400 max-w-3xl leading-relaxed">
+        <p className="text-xs text-on-surface-variant max-w-3xl leading-relaxed">
           Tamper-evident record of all consequential actions: criteria modifications, identity unmasking authorizations, human-AI score discrepancies, overrides, and final selection outcomes.
         </p>
 
         {/* Filter Controls */}
-        <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <div className="pt-3 border-t border-outline-variant/30 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
-            <span className="text-xs font-semibold text-slate-400 uppercase">Filter by Actor:</span>
+            <Filter className="w-4 h-4 text-on-surface-variant" />
+            <span className="text-xs font-semibold text-on-surface-variant uppercase">Filter by Actor:</span>
             {(["all", "Hiring Manager", "HR/Admin", "System / Bias Shield"] as const).map((r) => (
               <button
                 key={r}
                 onClick={() => setFilterRole(r)}
-                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                   filterRole === r
-                    ? "bg-purple-600 text-white font-semibold shadow-sm"
-                    : "bg-slate-950 text-slate-400 hover:text-white border border-slate-800"
+                    ? "bg-secondary text-white shadow-subtle"
+                    : "bg-surface text-on-surface-variant hover:text-primary border border-outline-variant/40"
                 }`}
               >
                 {r === "all" ? "All Actors" : r}
@@ -72,20 +72,20 @@ export const HRAuditLogViewer: React.FC<HRAuditLogViewerProps> = ({ logs }) => {
           </div>
 
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-on-surface-variant absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search audit trail..."
-              className="bg-slate-950 text-slate-200 text-xs pl-8 pr-3 py-1.5 rounded-xl border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              className="bg-surface-container-lowest text-primary text-xs pl-8 pr-3 py-1.5 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20 shadow-subtle"
             />
           </div>
         </div>
       </div>
 
       {/* Audit Log Timeline */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl">
+      <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-6 shadow-subtle">
         <div className="space-y-4">
           {filteredLogs.map((log) => {
             const isUnmask = log.action.includes("Unmasked");
@@ -95,49 +95,49 @@ export const HRAuditLogViewer: React.FC<HRAuditLogViewerProps> = ({ logs }) => {
             return (
               <div
                 key={log.id}
-                className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 hover:border-slate-700 transition-all text-xs"
+                className="p-4 rounded-lg bg-surface border border-outline-variant/30 space-y-2 hover:bg-surface-container-low transition-all text-xs"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                   <div className="flex items-center gap-2">
                     <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                         isUnmask
-                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                          ? "bg-amber-50 text-amber-800 border border-amber-200"
                           : isEscalation
-                          ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                          ? "bg-red-50 text-error border border-red-200"
                           : isRubric
-                          ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
-                          : "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                          ? "bg-purple-50 text-purple-800 border border-purple-200"
+                          : "bg-secondary/10 text-secondary border border-secondary/20"
                       }`}
                     >
                       {log.actorRole}
                     </span>
-                    <span className="font-bold text-white text-sm">{log.action}</span>
+                    <span className="font-headline font-bold text-primary text-sm">{log.action}</span>
                   </div>
 
-                  <span className="text-[11px] text-slate-500">
+                  <span className="text-[11px] text-on-surface-variant">
                     {new Date(log.timestamp).toLocaleString()}
                   </span>
                 </div>
 
-                <p className="text-slate-300 leading-relaxed">{log.details}</p>
+                <p className="text-on-surface-variant leading-relaxed">{log.details}</p>
 
                 {log.mandatoryReason && (
-                  <p className="text-[11px] text-amber-300 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20 italic">
+                  <p className="text-[11px] text-amber-900 bg-amber-50 p-2 rounded-md border border-amber-200 italic">
                     <strong>Logged Justification:</strong> "{log.mandatoryReason}"
                   </p>
                 )}
 
-                <div className="flex items-center gap-4 text-[10px] text-slate-500 pt-1 border-t border-slate-900">
-                  <span>Actor: <strong className="text-slate-400">{log.actorName}</strong></span>
-                  <span>Target: <strong className="text-slate-400">{log.targetId}</strong></span>
+                <div className="flex items-center gap-4 text-[10px] text-on-surface-variant pt-1 border-t border-outline-variant/20">
+                  <span>Actor: <strong className="text-primary">{log.actorName}</strong></span>
+                  <span>Target: <strong className="text-primary">{log.targetId}</strong></span>
                 </div>
               </div>
             );
           })}
 
           {filteredLogs.length === 0 && (
-            <div className="p-8 text-center text-xs text-slate-400">
+            <div className="p-8 text-center text-xs text-on-surface-variant">
               No audit records matching criteria.
             </div>
           )}

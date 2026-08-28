@@ -169,11 +169,11 @@ export class TokenBucketRateLimiter {
 
   if (round2Apps.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/30 p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
-        <FileCode className="w-10 h-10 text-slate-600 mb-3" />
-        <h3 className="font-display font-bold text-white text-base">No Candidates in Round 2 Assignment</h3>
-        <p className="text-xs text-slate-400 max-w-md mt-1 mb-4">
-          Advance candidates from <strong className="text-indigo-300">Round 1 Interview</strong> to evaluate role-related coding tasks and case studies.
+      <div className="bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant/50 p-12 text-center flex flex-col items-center justify-center min-h-[380px] shadow-subtle">
+        <FileCode className="w-10 h-10 text-on-surface-variant mb-2" />
+        <h3 className="font-headline font-bold text-primary text-base">No Candidates in Round 2 Assignment</h3>
+        <p className="text-xs text-on-surface-variant max-w-md mt-1 mb-4">
+          Advance candidates from <strong className="text-secondary">Round 1 Interview</strong> to evaluate role-related coding tasks and case studies.
         </p>
       </div>
     );
@@ -187,12 +187,12 @@ export class TokenBucketRateLimiter {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-secondary/10 text-secondary border border-secondary/20">
               Stage 3: Round 2 Assignment & Coding Evaluation
             </span>
-            <span className="text-xs text-slate-400 font-medium">{job.title}</span>
+            <span className="text-xs text-on-surface-variant font-medium">{job.title}</span>
           </div>
-          <h1 className="text-xl font-bold font-display text-white">
+          <h1 className="font-headline font-bold text-xl text-primary">
             Assignment Artifact Scoring & Dual Validation
           </h1>
         </div>
@@ -209,7 +209,7 @@ export class TokenBucketRateLimiter {
                 setHmReasons(found.round2Scorecard.hmReasons);
               }
             }}
-            className="bg-slate-900 text-slate-200 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="bg-surface-container-lowest text-primary text-xs font-semibold px-3 py-2 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20 shadow-subtle cursor-pointer"
           >
             {round2Apps.map((a) => (
               <option key={a.id} value={a.id}>
@@ -221,9 +221,9 @@ export class TokenBucketRateLimiter {
           {activeApp.round2Scorecard && (
             <button
               onClick={onNavigateToProposal}
-              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 flex items-center gap-1.5 transition-all"
+              className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary-container text-white text-xs font-semibold shadow-subtle flex items-center gap-1.5 transition-all"
             >
-              <span>View Final Rankings & Proposal</span>
+              <span>View Rankings & Proposal</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
@@ -233,18 +233,18 @@ export class TokenBucketRateLimiter {
       {/* Discrepancy Status Banner */}
       {scorecard && (
         <div
-          className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+          className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-subtle ${
             scorecard.discrepancyLevel === "Aligned"
-              ? "bg-emerald-950/20 border-emerald-500/40 text-emerald-300"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-900"
               : scorecard.discrepancyLevel === "Minor Difference"
-              ? "bg-amber-950/20 border-amber-500/40 text-amber-300"
-              : "bg-red-950/30 border-red-500/50 text-red-300"
+              ? "bg-amber-50 border-amber-200 text-amber-900"
+              : "bg-red-50 border-red-200 text-red-900"
           }`}
         >
           <div className="flex items-center gap-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
             <div>
-              <span className="font-bold text-xs">
+              <span className="font-headline font-bold text-xs">
                 Round 2 Discrepancy: {scorecard.discrepancyLevel.toUpperCase()} (Delta: {scorecard.delta}%)
               </span>
               <p className="text-[11px] opacity-90 mt-0.5">
@@ -259,32 +259,32 @@ export class TokenBucketRateLimiter {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Artifact & Prompt */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl space-y-3">
-            <div className="pb-2 border-b border-slate-800">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-6 shadow-subtle space-y-3">
+            <div className="pb-2 border-b border-outline-variant/30">
+              <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider block">
                 Standardized Assignment Prompt
               </span>
-              <p className="text-xs text-white mt-1">{promptText}</p>
+              <p className="text-xs text-primary font-medium mt-1">{promptText}</p>
             </div>
 
             <div>
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+              <span className="text-[11px] font-semibold text-primary uppercase tracking-wider block mb-1.5">
                 Candidate Submitted Artifact
               </span>
               <textarea
                 rows={16}
                 value={artifactText}
                 onChange={(e) => setArtifactText(e.target.value)}
-                className="w-full bg-slate-950 text-slate-200 font-mono text-xs p-3.5 rounded-xl border border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none leading-relaxed"
+                className="w-full bg-surface text-primary font-mono text-xs p-3.5 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20 resize-none leading-relaxed"
               />
             </div>
           </div>
         </div>
 
-        {/* Right: HM Scoring vs Gemini Validation */}
+        {/* Right: Scoring */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl space-y-4">
-            <h3 className="font-display font-semibold text-xs text-white pb-3 border-b border-slate-800">
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-6 shadow-subtle space-y-4">
+            <h3 className="font-headline font-bold text-xs text-primary pb-3 border-b border-outline-variant/30">
               Hiring Manager Assignment Rubric Scoring
             </h3>
 
@@ -295,17 +295,17 @@ export class TokenBucketRateLimiter {
                 const feedback = scorecard?.geminiFeedback?.[crit.id];
 
                 return (
-                  <div key={crit.id} className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+                  <div key={crit.id} className="p-4 rounded-lg bg-surface border border-outline-variant/30 space-y-3">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-xs text-white">{crit.name}</h4>
-                      <span className="text-[11px] font-bold text-indigo-400">
+                      <h4 className="font-headline font-bold text-xs text-primary">{crit.name}</h4>
+                      <span className="text-[11px] font-bold text-secondary">
                         {crit.weight}% Weight
                       </span>
                     </div>
 
                     <div className="grid grid-cols-12 gap-3 items-center">
                       <div className="col-span-8 flex items-center gap-3">
-                        <span className="text-[11px] text-slate-400 shrink-0">HM Mark:</span>
+                        <span className="text-[11px] text-on-surface-variant shrink-0 font-medium">HM Mark:</span>
                         <input
                           type="range"
                           min={0}
@@ -314,13 +314,13 @@ export class TokenBucketRateLimiter {
                           onChange={(e) =>
                             setHmMarks({ ...hmMarks, [crit.id]: Number(e.target.value) })
                           }
-                          className="w-full accent-indigo-500 cursor-pointer"
+                          className="w-full accent-secondary cursor-pointer"
                         />
                       </div>
                       <div className="col-span-4 flex items-center justify-end gap-2">
-                        <span className="text-sm font-bold text-white">{hmMark}%</span>
+                        <span className="text-sm font-headline font-bold text-primary">{hmMark}%</span>
                         {geminiMark !== undefined && (
-                          <span className="text-xs font-bold text-indigo-300 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                          <span className="text-xs font-bold text-secondary bg-surface-container px-2 py-0.5 rounded border border-outline-variant/30">
                             AI: {geminiMark}%
                           </span>
                         )}
@@ -334,11 +334,11 @@ export class TokenBucketRateLimiter {
                         setHmReasons({ ...hmReasons, [crit.id]: e.target.value })
                       }
                       placeholder="Evidence reason for this mark..."
-                      className="w-full bg-slate-900 text-slate-200 text-xs px-3 py-1.5 rounded-lg border border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full bg-surface-container-lowest text-primary text-xs px-3 py-2 rounded-md border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20"
                     />
 
                     {feedback && (
-                      <p className="text-[11px] text-indigo-300 italic bg-indigo-950/20 p-2 rounded-lg border border-indigo-500/20">
+                      <p className="text-[11px] text-secondary bg-secondary-container/10 p-2 rounded-md border border-secondary/20 italic">
                         AI Validator: "{feedback}"
                       </p>
                     )}
@@ -347,14 +347,14 @@ export class TokenBucketRateLimiter {
               })}
             </div>
 
-            <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-              <span className="text-xs text-slate-400">
+            <div className="pt-3 border-t border-outline-variant/30 flex items-center justify-between">
+              <span className="text-xs text-on-surface-variant">
                 Run Gemini validation and synthesize composite ranking
               </span>
               <button
                 onClick={handleRunAiValidation}
                 disabled={isValidating || !artifactText.trim()}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all"
+                className="px-6 py-2.5 rounded-lg bg-secondary hover:bg-secondary-container text-white font-bold text-xs shadow-subtle flex items-center gap-2 transition-all hover:scale-[1.01]"
               >
                 {isValidating ? (
                   <>

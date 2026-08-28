@@ -154,11 +154,11 @@ export const HMShortlisting: React.FC<HMShortlistingProps> = ({
 
   if (jobApps.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/30 p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
-        <FileSearch className="w-10 h-10 text-slate-600 mb-3" />
-        <h3 className="font-display font-bold text-white text-base">No Applications Received Yet</h3>
-        <p className="text-xs text-slate-400 max-w-md mt-1 mb-4">
-          Open the <strong className="text-indigo-300">Applicant Portal</strong> to submit a live application for {job.title}.
+      <div className="bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant/50 p-12 text-center flex flex-col items-center justify-center min-h-[380px] shadow-subtle">
+        <FileSearch className="w-10 h-10 text-on-surface-variant mb-2" />
+        <h3 className="font-headline font-bold text-primary text-base">No Applications Received Yet</h3>
+        <p className="text-xs text-on-surface-variant max-w-md mt-1 mb-4">
+          Open the <strong className="text-secondary">Applicant Portal</strong> to submit a live application for {job.title}.
         </p>
       </div>
     );
@@ -170,23 +170,23 @@ export const HMShortlisting: React.FC<HMShortlistingProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-secondary/10 text-secondary border border-secondary/20">
               Stage 1: Anonymized Preliminary Shortlisting
             </span>
-            <span className="text-xs text-slate-400 font-medium">{job.title}</span>
+            <span className="text-xs text-on-surface-variant font-medium">{job.title}</span>
           </div>
-          <h1 className="text-xl font-bold font-display text-white">
+          <h1 className="font-headline font-bold text-xl text-primary">
             Candidate Evidence Review ({jobApps.length} Received)
           </h1>
         </div>
 
         {/* Candidate Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400">Selecting:</span>
+          <span className="text-xs text-on-surface-variant font-medium">Selecting:</span>
           <select
             value={activeApp?.id}
             onChange={(e) => setSelectedAppId(e.target.value)}
-            className="bg-slate-900 text-slate-200 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="bg-surface-container-lowest text-primary text-xs font-semibold px-3 py-2 rounded-lg border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-secondary/20 shadow-subtle cursor-pointer"
           >
             {jobApps.map((a) => (
               <option key={a.id} value={a.id}>
@@ -199,36 +199,36 @@ export const HMShortlisting: React.FC<HMShortlistingProps> = ({
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Anonymized Resume Evidence */}
+        {/* Left: Anonymized Resume Evidence */}
         <div className="lg:col-span-6 space-y-4">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-6 shadow-subtle space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-outline-variant/30">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-sm text-white">{activeApp.anonymizedId}</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="font-headline font-bold text-sm text-primary">{activeApp.anonymizedId}</span>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                   Identity Vault Masked
                 </span>
               </div>
-              <span className="text-[11px] text-slate-500">
+              <span className="text-[11px] text-on-surface-variant">
                 Applied {new Date(activeApp.appliedDate).toLocaleDateString()}
               </span>
             </div>
 
             <div>
-              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+              <label className="text-[11px] font-semibold text-primary uppercase tracking-wider block mb-1.5">
                 Candidate Submitted Resume (Anonymized Evidence)
               </label>
-              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-slate-300 max-h-[360px] overflow-y-auto leading-relaxed whitespace-pre-wrap">
+              <div className="bg-surface p-4 rounded-lg border border-outline-variant/30 font-mono text-xs text-primary max-h-[360px] overflow-y-auto leading-relaxed whitespace-pre-wrap">
                 {activeApp.rawResumeText}
               </div>
             </div>
 
             {activeApp.linkedInExportText && (
               <div>
-                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+                <label className="text-[11px] font-semibold text-primary uppercase tracking-wider block mb-1.5">
                   Supplementary LinkedIn Export Evidence
                 </label>
-                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-slate-400 max-h-[120px] overflow-y-auto leading-relaxed whitespace-pre-wrap">
+                <div className="bg-surface p-3.5 rounded-lg border border-outline-variant/30 font-mono text-xs text-on-surface-variant max-h-[120px] overflow-y-auto leading-relaxed whitespace-pre-wrap">
                   {activeApp.linkedInExportText}
                 </div>
               </div>
@@ -239,12 +239,12 @@ export const HMShortlisting: React.FC<HMShortlistingProps> = ({
               <button
                 onClick={handleRunShortlistValidation}
                 disabled={isValidating}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all"
+                className="w-full py-3 rounded-lg bg-secondary hover:bg-secondary-container text-white text-xs font-bold shadow-subtle flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
               >
                 {isValidating ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Running Gemini Independent Shortlist Validation...</span>
+                    <span>Running Gemini Independent Validation...</span>
                   </>
                 ) : (
                   <>
@@ -257,23 +257,23 @@ export const HMShortlisting: React.FC<HMShortlistingProps> = ({
           </div>
         </div>
 
-        {/* Right Column: AI Independent Validation & HM Official Decision */}
+        {/* Right: AI Independent Validation & HM Decision */}
         <div className="lg:col-span-6 space-y-4">
           {activeApp.shortlisting ? (
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl space-y-5 animate-fadeIn">
+            <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-6 shadow-subtle space-y-5 animate-fadeIn">
               {/* Validation Summary */}
-              <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+              <div className="flex items-center justify-between pb-4 border-b border-outline-variant/30">
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-semibold block">
+                  <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider block">
                     Gemini Recommendation
                   </span>
                   <span
-                    className={`text-base font-bold font-display ${
+                    className={`text-base font-headline font-bold ${
                       activeApp.shortlisting.geminiRecommendation === "Advance"
-                        ? "text-emerald-400"
+                        ? "text-emerald-600"
                         : activeApp.shortlisting.geminiRecommendation === "Hold"
-                        ? "text-amber-400"
-                        : "text-red-400"
+                        ? "text-amber-600"
+                        : "text-error"
                     }`}
                   >
                     {activeApp.shortlisting.geminiRecommendation.toUpperCase()}
@@ -282,41 +282,41 @@ export const HMShortlisting: React.FC<HMShortlistingProps> = ({
 
                 <div className="flex items-center gap-4 text-right">
                   <div>
-                    <span className="text-xl font-bold font-display text-indigo-400">
+                    <span className="text-xl font-headline font-bold text-secondary">
                       {activeApp.shortlisting.geminiFitScore}%
                     </span>
-                    <p className="text-[9px] text-slate-500 uppercase font-semibold">AI Fit Score</p>
+                    <p className="text-[9px] text-on-surface-variant uppercase font-semibold">AI Fit Score</p>
                   </div>
                   <div>
-                    <span className="text-xl font-bold font-display text-slate-200">
+                    <span className="text-xl font-headline font-bold text-primary">
                       {activeApp.shortlisting.ruleBasedScore}%
                     </span>
-                    <p className="text-[9px] text-slate-500 uppercase font-semibold">Rule Score</p>
+                    <p className="text-[9px] text-on-surface-variant uppercase font-semibold">Rule Score</p>
                   </div>
                 </div>
               </div>
 
               {/* Skills Verification */}
               <div>
-                <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                <h4 className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
                   Corroborated Skills Match
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
                   {activeApp.shortlisting.matchedSkills.map((s, idx) => (
                     <span
                       key={idx}
-                      className="text-[11px] px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 flex items-center gap-1"
+                      className="text-[11px] px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1 font-medium"
                     >
-                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                       {s}
                     </span>
                   ))}
                   {activeApp.shortlisting.missingSkills.map((s, idx) => (
                     <span
                       key={idx}
-                      className="text-[11px] px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/20 flex items-center gap-1"
+                      className="text-[11px] px-2.5 py-1 rounded-md bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1 font-medium"
                     >
-                      <AlertTriangle className="w-3 h-3 text-amber-400" />
+                      <AlertTriangle className="w-3 h-3 text-amber-600" />
                       {s} (Unverified)
                     </span>
                   ))}
@@ -325,30 +325,30 @@ export const HMShortlisting: React.FC<HMShortlistingProps> = ({
 
               {/* Strengths & Human Verification Claims */}
               <div className="space-y-3">
-                <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 text-xs">
-                  <span className="font-semibold text-white block mb-1.5 flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-indigo-400" />
+                <div className="p-3.5 rounded-lg bg-surface border border-outline-variant/30 text-xs">
+                  <span className="font-semibold text-primary block mb-1.5 flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-secondary" />
                     Observed Strengths
                   </span>
-                  <ul className="space-y-1 text-slate-300">
+                  <ul className="space-y-1 text-on-surface-variant">
                     {activeApp.shortlisting.strengths.map((str, idx) => (
                       <li key={idx} className="flex items-start gap-1.5">
-                        <span className="text-emerald-400 font-bold">•</span>
+                        <span className="text-emerald-600 font-bold">•</span>
                         <span>{str}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 text-xs">
-                  <span className="font-semibold text-amber-300 block mb-1.5 flex items-center gap-1.5">
-                    <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
+                <div className="p-3.5 rounded-lg bg-surface border border-outline-variant/30 text-xs">
+                  <span className="font-semibold text-amber-800 block mb-1.5 flex items-center gap-1.5">
+                    <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
                     Claims Requiring Human Verification
                   </span>
-                  <ul className="space-y-1 text-slate-300">
+                  <ul className="space-y-1 text-on-surface-variant">
                     {activeApp.shortlisting.claimsRequiringHumanVerification.map((claim, idx) => (
                       <li key={idx} className="flex items-start gap-1.5">
-                        <span className="text-amber-400 font-bold">•</span>
+                        <span className="text-amber-600 font-bold">•</span>
                         <span>{claim}</span>
                       </li>
                     ))}
@@ -357,13 +357,13 @@ export const HMShortlisting: React.FC<HMShortlistingProps> = ({
               </div>
 
               {/* HM Official Decision Section */}
-              <div className="pt-3 border-t border-slate-800 space-y-3">
+              <div className="pt-3 border-t border-outline-variant/30 space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-xs font-semibold text-white block">
+                    <span className="text-xs font-semibold text-primary block">
                       Hiring Manager Official Decision:
                     </span>
-                    <span className="text-xs font-bold text-indigo-400">
+                    <span className="text-xs font-bold text-secondary">
                       {activeApp.shortlisting.hmDecision}
                     </span>
                   </div>
@@ -372,26 +372,26 @@ export const HMShortlisting: React.FC<HMShortlistingProps> = ({
                       setDecisionType(activeApp.shortlisting?.hmDecision || "Advance to Round 1");
                       setIsDeciding(true);
                     }}
-                    className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 transition-all"
+                    className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary-container text-white text-xs font-semibold shadow-subtle transition-all"
                   >
-                    Update Official Decision
+                    Update Decision
                   </button>
                 </div>
 
                 {activeApp.shortlisting.hmOverrideReason && (
-                  <p className="text-[11px] text-amber-300 bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20">
+                  <p className="text-[11px] text-amber-800 bg-amber-50 p-2.5 rounded-lg border border-amber-200">
                     <strong>Recorded Override Rationale:</strong> "{activeApp.shortlisting.hmOverrideReason}"
                   </p>
                 )}
               </div>
             </div>
           ) : (
-            <div className="h-full min-h-[360px] rounded-2xl border border-dashed border-slate-800 bg-slate-900/30 p-8 text-center flex flex-col items-center justify-center">
-              <Sparkles className="w-8 h-8 text-indigo-400 mb-2" />
-              <h4 className="font-display font-semibold text-white text-sm">
+            <div className="h-full min-h-[360px] bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant/50 p-8 text-center flex flex-col items-center justify-center shadow-subtle">
+              <Sparkles className="w-8 h-8 text-secondary mb-2" />
+              <h4 className="font-headline font-semibold text-primary text-sm">
                 Awaiting Shortlist Validation
               </h4>
-              <p className="text-xs text-slate-400 max-w-sm mt-1">
+              <p className="text-xs text-on-surface-variant max-w-sm mt-1">
                 Click "Run Gemini AI Shortlist Validation" on the left to extract skills, calculate match fit, and view Gemini's recommendation.
               </p>
             </div>
@@ -401,27 +401,27 @@ export const HMShortlisting: React.FC<HMShortlistingProps> = ({
 
       {/* Decision Modal */}
       {isDeciding && activeApp?.shortlisting && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-          <div className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-2xl space-y-4 text-slate-100">
-            <h3 className="font-display font-bold text-base text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/40 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md rounded-xl bg-surface-container-lowest border border-outline-variant/30 p-6 shadow-elevated space-y-4">
+            <h3 className="font-headline font-bold text-base text-primary">
               Record Official Shortlisting Decision
             </h3>
-            <p className="text-xs text-slate-400">
-              Candidate: <strong className="text-white">{activeApp.anonymizedId}</strong> • Gemini Recommendation: <strong className="text-indigo-300">{activeApp.shortlisting.geminiRecommendation}</strong>
+            <p className="text-xs text-on-surface-variant">
+              Candidate: <strong className="text-primary">{activeApp.anonymizedId}</strong> • Gemini Recommendation: <strong className="text-secondary">{activeApp.shortlisting.geminiRecommendation}</strong>
             </p>
 
             <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-300">Select Decision</label>
+              <label className="block text-xs font-semibold text-primary">Select Decision</label>
               <div className="grid grid-cols-3 gap-2">
                 {(["Advance to Round 1", "Hold", "Not Advancing"] as const).map((opt) => (
                   <button
                     key={opt}
                     type="button"
                     onClick={() => setDecisionType(opt)}
-                    className={`py-2 px-2 rounded-xl text-[11px] font-bold border transition-all text-center ${
+                    className={`py-2 px-2 rounded-lg text-[11px] font-bold border transition-all text-center ${
                       decisionType === opt
-                        ? "bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30"
-                        : "bg-slate-950 text-slate-400 border-slate-800 hover:text-white"
+                        ? "bg-secondary text-white border-secondary shadow-subtle"
+                        : "bg-surface text-on-surface-variant border-outline-variant/40 hover:text-primary"
                     }`}
                   >
                     {opt}
@@ -431,7 +431,7 @@ export const HMShortlisting: React.FC<HMShortlistingProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-primary mb-1">
                 Job-Related Override Reason (Required if overriding Gemini)
               </label>
               <textarea
@@ -439,22 +439,22 @@ export const HMShortlisting: React.FC<HMShortlistingProps> = ({
                 value={overrideReason}
                 onChange={(e) => setOverrideReason(e.target.value)}
                 placeholder="Explain the job-related justification for this decision..."
-                className="w-full bg-slate-950 text-slate-200 text-xs p-3 rounded-xl border border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
+                className="w-full p-3 rounded-lg border border-outline-variant/50 focus:border-secondary focus:ring-2 focus:ring-secondary/20 bg-surface-container-lowest text-primary text-xs resize-none"
               />
             </div>
 
-            <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+            <div className="pt-3 border-t border-outline-variant/30 flex items-center justify-end gap-2">
               <button
                 onClick={() => setIsDeciding(false)}
-                className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800"
+                className="px-4 py-2 rounded-lg text-xs font-medium text-on-surface-variant hover:bg-surface"
               >
                 Cancel
               </button>
               <button
                 onClick={handleRecordHMDecision}
-                className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition-all"
+                className="px-5 py-2 rounded-lg bg-secondary hover:bg-secondary-container text-white text-xs font-bold shadow-subtle transition-all"
               >
-                Confirm Official Decision
+                Confirm Decision
               </button>
             </div>
           </div>

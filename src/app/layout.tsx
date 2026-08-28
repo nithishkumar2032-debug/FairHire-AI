@@ -1,22 +1,24 @@
 import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  display: "swap",
+  weight: ["500", "600", "700", "800"],
+});
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
-});
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  variable: "--font-outfit",
-  display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "FairHire AI — Autonomous, Bias-Free Talent Screening & Interview Platform",
-  description: "Transform candidate evaluation with intelligent multi-stage screening, real-time AI technical interviews, and automated scorecards.",
+  title: "FairHire — Auditable, Bias-Free Responsible AI Recruitment",
+  description: "Transparent, explainable and auditable recruitment platform with human accountability and dual-score discrepancy verification.",
 };
 
 export default function RootLayout({
@@ -25,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable} dark`}>
-      <body className="bg-[#090d16] text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
+    <html lang="en" className={`${manrope.variable} ${inter.variable}`}>
+      <body className="bg-background text-on-background antialiased font-sans selection:bg-secondary selection:text-white min-h-screen">
         {children}
       </body>
     </html>
