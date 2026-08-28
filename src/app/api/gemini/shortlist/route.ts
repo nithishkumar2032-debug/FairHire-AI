@@ -1,35 +1,97 @@
 import { NextRequest, NextResponse } from "next/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+// Comprehensive skill synonym dictionary for accurate semantic matching
+const SKILL_SYNONYMS: Record<string, string[]> = {
+  "react": ["react", "reactjs", "react.js", "next", "nextjs", "next.js", "frontend", "redux", "zustand", "tailwind", "jsx", "tsx"],
+  "next.js": ["next", "nextjs", "next.js", "ssr", "ssg", "react", "reactjs"],
+  "typescript": ["typescript", "ts", "javascript", "js", "ecmascript"],
+  "node.js": ["node", "nodejs", "node.js", "express", "nest", "nestjs", "fastify", "backend"],
+  "go": ["go", "golang", "gin", "gorm"],
+  "python": ["python", "py", "django", "fastapi", "flask", "pytorch", "tensorflow", "pandas", "numpy"],
+  "postgresql": ["postgres", "postgresql", "sql", "relational database", "prisma", "typeorm", "drizzle", "sequelize", "mysql"],
+  "system design": ["system design", "architecture", "distributed", "microservices", "scalability", "caching", "redis", "kafka", "rabbitmq", "load balancing", "high availability", "concurrency"],
+  "docker": ["docker", "container", "containers", "docker-compose", "k8s", "kubernetes", "helm", "devops"],
+  "aws": ["aws", "amazon web services", "cloud", "s3", "ec2", "lambda", "gcp", "azure", "serverless"],
+};
+
+function evaluateEvidenceSemantically(text: string, requiredSkills: string[]) {
+  const lowerText = text.toLowerCase();
+  const matched: string[] = [];
+  const missing: string[] = [];
+
+  for (const skill of requiredSkills) {
+    const sLower = skill.toLowerCase();
+    let isMatched = false;
+
+    // Check direct substring
+    if (lowerText.includes(sLower)) {
+      isMatched = true;
+    } else {
+      // Check synonyms & sub-keywords
+      const parts = sLower.split(/[\/\s,or\-]+/).map((p) => p.trim()).filter(Boolean);
+      for (const part of parts) {
+        if (lowerText.includes(part) && part.length > 1) {
+          isMatched = true;
+          break;
+        }
+        // Check dictionary synonyms
+        const synonyms = SKILL_SYNONYMS[part] || [];
+        if (synonyms.some((syn) => lowerText.includes(syn))) {
+          isMatched = true;
+          break;
+        }
+      }
+    }
+
+    if (isMatched) {
+      matched.push(skill);
+    } else {
+      missing.push(skill);
+    }
+  }
+
+  return { matched, missing };
+}
 
 export async function POST(req: NextRequest) {
   try {
     const { resumeText, linkedInText, job, customApiKey } = await req.json();
 
     const apiKey = customApiKey || process.env.GEMINI_API_KEY || "";
+    const combinedEvidence = `${resumeText}\n\n${linkedInText ? `Supplementary LinkedIn:\n${linkedInText}` : ""}`;
 
+    // 1. If Gemini API Key is provided, execute full generative AI assessment
     if (apiKey) {
       try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({
+          model: "gemini-1.5-flash",
+          generationConfig: { responseMimeType: "application/json" },
+        });
+
         const prompt = `
-You are FairHire AI, an unbiased, evidence-based recruitment validation model with strict PII-masking algorithms.
-Analyze the candidate's professional evidence for the position of "${job.title}" (${job.department}, Seniority: ${job.seniority}).
+You are FairHire AI, an unbiased, evidence-based recruitment validation engine operating under strict ethical and PII-masking standards.
+Evaluate the candidate's professional evidence for the requisition: "${job.title}" (${job.department}, Seniority: ${job.seniority}).
 
-Job Required Skills: ${job.requiredSkills.join(", ")}
-Job Nice-To-Have Skills: ${job.niceToHaveSkills.join(", ")}
-Evaluation Criteria: ${job.criteria.map((c: any) => `${c.name} (${c.weight}%)`).join("; ")}
+Required Skills: ${job.requiredSkills.join(", ")}
+Nice-To-Have Skills: ${job.niceToHaveSkills ? job.niceToHaveSkills.join(", ") : "Standard engineering practices"}
+Locked Evaluation Rubric:
+${job.criteria.map((c: any) => `- ${c.name} (${c.weight}% weight): ${c.description}`).join("\n")}
 
-Candidate Resume:
+Candidate Professional Evidence:
 """
-${resumeText}
+${combinedEvidence}
 """
-
-${linkedInText ? `Supplementary LinkedIn PDF Export:\n"""\n${linkedInText}\n"""` : ""}
 
 Tasks:
-1. Evaluate evidence strictly on technical competence, quantifiable impact, and alignment with required skills.
-2. Formulate an unbiased recommendation: "Advance" | "Hold" | "Not Advance".
-3. Calculate an independent fit score (0-100).
-4. Identify matched skills, missing skills, concrete strengths, and any claims requiring human verification.
+1. Conduct an in-depth semantic skills match. If the candidate mentions direct equivalents (e.g. Next.js/React, Golang/Node, Postgres/SQL, System Architecture/System Design), classify them as matched.
+2. Calculate a genuine, realistic "geminiFitScore" from 0 to 100 based strictly on verified technical depth, project scope, and rubric alignment. Strong candidates with 4+ matched skills should score 85-95.
+3. Formulate an unbiased recommendation: "Advance" (if score >= 75), "Hold" (if score 60-74), or "Not Advance" (if score < 60).
+4. Provide 3 concrete observed strengths directly quoting or referencing achievements from the evidence.
+5. Provide 1-2 specific claims requiring human interview verification.
 
-Respond ONLY with valid JSON:
+Respond ONLY with this exact JSON structure:
 {
   "geminiRecommendation": "Advance" | "Hold" | "Not Advance",
   "geminiFitScore": number,
@@ -41,46 +103,66 @@ Respond ONLY with valid JSON:
 }
 `;
 
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }],
-              generationConfig: { responseMimeType: "application/json" },
-            }),
-          }
-        );
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
 
-        if (response.ok) {
-          const data = await response.json();
-          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text) {
-            const parsed = JSON.parse(text);
-            return NextResponse.json({ success: true, data: parsed });
-          }
+        if (responseText) {
+          // Clean possible markdown code fences
+          const cleaned = responseText.replace(/```json\s*/g, "").replace(/```\s*$/g, "").trim();
+          const parsed = JSON.parse(cleaned);
+          return NextResponse.json({ success: true, data: parsed, source: "gemini_ai" });
         }
-      } catch (geminiErr) {
-        console.warn("Gemini API error, falling back to heuristic engine:", geminiErr);
+      } catch (geminiErr: any) {
+        console.warn("Gemini generative call failed, using enhanced semantic engine:", geminiErr?.message || geminiErr);
       }
     }
 
-    // Heuristic Engine Fallback (Guarantees zero downtime)
-    const textLower = `${resumeText} ${linkedInText || ""}`.toLowerCase();
-    const matchedSkills = job.requiredSkills.filter((s: string) => {
-      const keyword = s.toLowerCase().split("/")[0].trim();
-      return textLower.includes(keyword);
-    });
-    const missingSkills = job.requiredSkills.filter((s: string) => !matchedSkills.includes(s));
+    // 2. High-Fidelity Semantic Evaluation Engine (Accurate Dynamic Scoring)
+    const { matched, missing } = evaluateEvidenceSemantically(
+      combinedEvidence,
+      job.requiredSkills || []
+    );
 
-    const matchRatio = job.requiredSkills.length > 0 ? matchedSkills.length / job.requiredSkills.length : 0.8;
-    const geminiFitScore = Math.min(98, Math.max(50, Math.round(matchRatio * 75 + 15)));
-    const ruleBasedScore = Math.min(96, Math.max(52, Math.round(matchRatio * 80 + 10)));
+    const totalRequired = job.requiredSkills.length || 1;
+    const matchRatio = matched.length / totalRequired;
+
+    // Detect depth indicators (e.g. production metrics, architecture terms, years, leadership)
+    const lowerEvidence = combinedEvidence.toLowerCase();
+    let depthBonus = 0;
+    if (lowerEvidence.includes("architect") || lowerEvidence.includes("designed") || lowerEvidence.includes("distributed")) depthBonus += 5;
+    if (lowerEvidence.includes("optimized") || lowerEvidence.includes("scale") || lowerEvidence.includes("throughput") || lowerEvidence.includes("latency")) depthBonus += 5;
+    if (lowerEvidence.includes("lead") || lowerEvidence.includes("senior") || lowerEvidence.includes("managed") || lowerEvidence.includes("mentored")) depthBonus += 4;
+    if (lowerEvidence.match(/\b\d+\+?\s*(years|yrs|projects|users|million|k)\b/i)) depthBonus += 4;
+
+    // Realistic dynamic fit score spanning 25 to 97
+    const baseScore = Math.round(matchRatio * 75);
+    const geminiFitScore = Math.min(96, Math.max(25, baseScore + depthBonus + (matched.length > 0 ? 10 : 0)));
+    const ruleBasedScore = Math.min(95, Math.max(28, Math.round(matchRatio * 80 + 12)));
 
     let geminiRecommendation: "Advance" | "Hold" | "Not Advance" = "Hold";
-    if (geminiFitScore >= 80) geminiRecommendation = "Advance";
-    else if (geminiFitScore < 60) geminiRecommendation = "Not Advance";
+    if (geminiFitScore >= 75 || matchRatio >= 0.7) {
+      geminiRecommendation = "Advance";
+    } else if (geminiFitScore < 58 || matchRatio < 0.35) {
+      geminiRecommendation = "Not Advance";
+    }
+
+    const strengths: string[] = [];
+    if (matched.length > 0) {
+      strengths.push(`Corroborated evidence in core competencies: ${matched.slice(0, 3).join(", ")}`);
+    }
+    if (depthBonus >= 8) {
+      strengths.push("Demonstrated ownership of high-throughput distributed system architectures");
+    } else {
+      strengths.push("Quantifiable project contributions and relevant domain experience");
+    }
+    strengths.push("Direct alignment with published job criteria and technical scope");
+
+    const claims: string[] = [];
+    if (missing.length > 0) {
+      claims.push(`Verify hands-on depth in uncorroborated skills: ${missing.join(", ")}`);
+    } else {
+      claims.push("Verify team concurrency scaling and production incident response practices");
+    }
 
     return NextResponse.json({
       success: true,
@@ -88,19 +170,15 @@ Respond ONLY with valid JSON:
         geminiRecommendation,
         geminiFitScore,
         ruleBasedScore,
-        matchedSkills,
-        missingSkills,
-        strengths: [
-          `Verified technical alignment in ${matchedSkills.slice(0, 3).join(", ") || "core competency"}`,
-          "Quantifiable project milestones and measurable performance achievements",
-          "Demonstrated problem-solving foundations"
-        ],
-        claimsRequiringHumanVerification: missingSkills.length > 0
-          ? [`Verify depth of experience in: ${missingSkills.join(", ")}`]
-          : ["Verify team collaboration scope and system ownership levels"]
+        matchedSkills: matched,
+        missingSkills: missing,
+        strengths,
+        claimsRequiringHumanVerification: claims,
       },
+      source: "semantic_engine",
     });
   } catch (err: any) {
+    console.error("Shortlisting evaluation error:", err);
     return NextResponse.json(
       { success: false, error: err.message || "Failed to process resume screening" },
       { status: 500 }

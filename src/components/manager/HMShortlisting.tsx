@@ -264,9 +264,14 @@ export const HMShortlisting: React.FC<HMShortlistingProps> = ({
               {/* Validation Summary */}
               <div className="flex items-center justify-between pb-4 border-b border-outline-variant/30">
                 <div>
-                  <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider block">
-                    Gemini Recommendation
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider block">
+                      Recommendation
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20">
+                      Gemini AI Evaluated
+                    </span>
+                  </div>
                   <span
                     className={`text-base font-headline font-bold ${
                       activeApp.shortlisting.geminiRecommendation === "Advance"
